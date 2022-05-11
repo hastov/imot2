@@ -1,0 +1,93 @@
+service: imot2-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: eu-central-1
+  environment:
+    IMOT2_TABLE_NAME: ${self:custom.Imot2Table.name}
+    USER_POOL_ID: { Ref: UserPool }
+    USER_POOL_CLIENT_ID: { Ref: UserPoolClient }
+  # httpApi:
+  #   authorizers:
+  #     serviceAuthorizer:
+  #       identitySource: $request.header.Authorization
+  #       issuerUrl: 
+  #         Fn::Join:
+  #         - ''
+  #         - - 'https://cognito-idp.'
+  #           - '${opt:region, self:provider.region}'
+  #           - '.amazonaws.com/'
+  #           - Ref: UserPool
+  #       audience:
+  #         - Ref: UserPoolClient
+  iamRoleStatements:
+    - ${file(${self:custom.functions.createListingLocation}.yml):iam}
+    - ${file(${self:custom.functions.userCreateLocation}.yml):iam}
+    - ${file(${self:custom.functions.userAuthLocation}.yml):iam}
+
+resources:
+  Resources:
+    Imot2Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Imot2Table-${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: imot2-user-pool-${self:provider.stage}
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: imot2-user-pool-client-${self:provider.stage}
+        UserPoolId:
+          Ref: UserPool
+        ExplicitAuthFlows:
+          - ADMIN_NO_SRP_AUTH
+        GenerateSecret: false
+        AccessTokenValidity: 5
+        IdTokenValidity: 5
+  
+functions:
+  - ${file(${self:custom.functions.userCreateLocation}.yml):function}
+  - ${file(${self:custom.functions.userAuthLocation}.yml):function}
+  - ${file(${self:custom.functions.createListingLocation}.yml):function}
+  # - ${file(${self:custom.functions.getListingsLocation}.yml):function}
+
+
+custom:
+  Imot2Table:
+    name: !Ref Imot2Table
+    arn: !GetAtt Imot2Table.Arn
+  UserPool:
+    arn: !GetAtt UserPool.Arn
+  functions:
+    directory: src/handlers
+    createListingLocation: ${self:custom.functions.directory}/createListing
+    # getListingsLocation: ${self:custom.functions.directory}/getListings
+    userCreateLocation: ${self:custom.functions.directory}/userCreate
+    userAuthLocation: ${self:custom.functions.directory}/userAuth

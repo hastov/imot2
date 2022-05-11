@@ -1,0 +1,15 @@
+function:
+  userCreate:
+    handler: ${self:custom.functions.userCreateLocation}.handler
+    events:
+      - http:
+          method: POST
+          path: /user/create
+          cors: true
+
+iam:
+  Effect: Allow
+  Action:
+    - cognito-idp:AdminCreateUser
+    - cognito-idp:AdminSetUserPassword
+  Resource: ${self:custom.UserPool.arn}

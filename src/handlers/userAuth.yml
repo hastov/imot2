@@ -1,0 +1,14 @@
+function:
+  userAuth:
+    handler: ${self:custom.functions.userAuthLocation}.handler
+    events:
+      - http:
+          method: POST
+          path: /user
+          cors: true
+
+iam:
+  Effect: Allow
+  Action:
+    - cognito-idp:AdminInitiateAuth
+  Resource: ${self:custom.UserPool.arn}
