@@ -6,14 +6,18 @@ import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpEventNormalizer from '@middy/http-event-normalizer';
 import httpErrorHandler from '@middy/http-error-handler';
 import createError from 'http-errors';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
 
-const listingRead: APIGatewayProxyHandler = async (event, _context) => {
-  const { id } = event.pathParameters!;
-  
+const listingRead: APIGatewayProxyHandler = async (event, _context): Promise<APIGatewayProxyResult> => {
+  let { id } = event.pathParameters!;
+  const listing = await getListingByID(id!)
+  return {
+    statusCode: 200,
+    body: JSON.stringify(listing)
+  }
 }
 
-export const getListingByID = async (id: string): Promise<Object> => {
+export const getListingByID = async (id: string): Promise<any> => {
   const params = {
     TableName: process.env.LISTINGS_TABLE_NAME,
     KeyConditionExpression: 'PPK = :PPK AND PSK = :PSK',
@@ -36,15 +40,6 @@ export const getListingByID = async (id: string): Promise<Object> => {
   
   return result.Items![0]
 }
-
-// interface Body { 
-//   typeOfListing: string | null;
-//   typeOfProperty: string | null;
-//   province: string | null;
-//   city: string | null;
-//   roomsCount: string | null;
-//   neighboorhood: string | null;
-// }
 
 export const handler: APIGatewayProxyHandler = middy(listingRead)
   .use(httpJsonBodyParser())
