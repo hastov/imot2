@@ -1,0 +1,15 @@
+Table:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: ${self:service}-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: PPK
+        AttributeType: S
+      - AttributeName: PSK
+        AttributeType: S
+    KeySchema:
+      - AttributeName: PPK
+        KeyType: HASH
+      - AttributeName: PSK
+        KeyType: RANGE

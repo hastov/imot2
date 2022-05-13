@@ -1,0 +1,24 @@
+function:
+  listingRead:
+    handler: ${self:custom.functions.listingReadLocation}.handler
+    events:
+      - http:
+          method: GET
+          path: /listing/{id}
+          # cors: true
+          # authorizer:
+          #   name: PrivateAuthorizer
+          #   type: COGNITO_USER_POOLS
+          #   arn:
+          #     Fn::GetAtt:
+          #       - UserPool
+          #       - Arn
+          #   claims:
+          #     - email
+
+iam:
+  Effect: Allow
+  Action:
+    - dynamodb:GetItem
+  Resource:
+    - ${self:custom.ListingsTable.arn}
