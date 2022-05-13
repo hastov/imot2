@@ -1,4 +1,4 @@
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/ddbDocClient";
 // import { ulid } from 'ulid';
 import middy from '@middy/core';
@@ -12,15 +12,18 @@ const listingRead: APIGatewayProxyHandler = async (event, _context) => {
   const { id } = event.pathParameters!;
   const params = {
     TableName: process.env.LISTINGS_TABLE_NAME,
-    Key: { "PPK": id },
+    KeyConditionExpression: 'PPK = :PPK',
+    ExpressionAttributeValues: {
+      ':PPK': id,
+    },
   };
 
   try {
-    const result = await ddbDocClient.send(new GetCommand(params));
-    if (!result.Item) throw new createError.NotFound();
+    const result = await ddbDocClient.send(new QueryCommand(params));
+    if (!result.Items) throw new createError.NotFound();
     return {
-      statusCode: 201,
-      body: JSON.stringify(result.Item),
+      statusCode: 200,
+      body: JSON.stringify(result.Items),
     };
   } catch (error) {
     console.error(error);
