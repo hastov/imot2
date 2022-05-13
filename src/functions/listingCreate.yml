@@ -1,6 +1,6 @@
 function:
-  createListing:
-    handler: ${self:custom.functions.createListingLocation}.handler
+  listingCreate:
+    handler: ${self:custom.functions.listingCreateLocation}.handler
     events:
       - http:
           method: POST
@@ -21,4 +21,4 @@ iam:
   Action:
     - dynamodb:PutItem
   Resource:
-    - ${self:custom.Imot2Table.arn}
+    - ${self:custom.ListingsTable.arn}

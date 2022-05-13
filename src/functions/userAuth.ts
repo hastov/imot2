@@ -6,9 +6,9 @@ import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpEventNormalizer from '@middy/http-event-normalizer';
 import httpErrorHandler from '@middy/http-error-handler';
 
-const client = new CognitoIdentityProviderClient();
+const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
-async function userAuth(event, context) {
+async function userAuth(event, _context) {
   try {
     const { email, password } = event.body;
     if (!email || !password || password.length < 8)
