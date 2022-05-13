@@ -1,15 +1,33 @@
 import { DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/ddbDocClient";
+import { getListingByID } from "./listingRead";
 // import { ulid } from 'ulid';
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpEventNormalizer from '@middy/http-event-normalizer';
 import httpErrorHandler from '@middy/http-error-handler';
 import createError from 'http-errors';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { usernameFromTokenIn } from "../libs/jwtParse";
 
-const listingDelete: APIGatewayProxyHandler = async (event, _context) => {
-  const { id } = event.pathParameters!;
+const listingDelete: APIGatewayProxyHandler = async (event, _context): Promise<APIGatewayProxyResult> => {
+  const username = usernameFromTokenIn(event)
+  const { id } = event.pathParameters!
+
+  const listing = await getListingByID(id!)
+
+  if (listing.POSTER !== username) 
+    throw new createError.Unauthorized()
+
+  await deleteAuctionWithID(id!)
+
+  return {
+    statusCode: 200,
+    body: ""
+  }
+}
+
+async function deleteAuctionWithID(id: string): Promise<APIGatewayProxyResult> {
   const params = {
     TableName: process.env.LISTINGS_TABLE_NAME,
     Key: {

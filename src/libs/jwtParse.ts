@@ -1,3 +1,11 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
+
+export const usernameFromTokenIn = (event: APIGatewayProxyEvent): string | null => {
+  const token = event.headers.Authorization?.replace(/^(Bearer )/,'')
+  if (!token) return null
+  return parsedFromJWT(token!)['cognito:username']
+}
+
 /**
  * Returns a JS object representation of a Javascript Web Token from its common encoded
  * string form.
@@ -17,7 +25,7 @@
 //   }
 // }
 
-export default function parsedFromJWT(token: string) {
+export function parsedFromJWT(token: string) {
   var base64Url = token.split('.')[1];
   var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
   var jsonPayload = decodeURIComponent(Buffer.from(base64, "base64").toString().split('').map(function(c: string) {

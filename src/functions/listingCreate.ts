@@ -1,6 +1,6 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/ddbDocClient";
-import parsedFromJWT from "../libs/jwtParse";
+import { usernameFromTokenIn } from "../libs/jwtParse";
 import { ulid } from 'ulid';
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
@@ -10,11 +10,7 @@ import createError from 'http-errors';
 import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
 const listingCreate: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent, _context) => {
-  // return {
-  //   statusCode: 200,
-  const token = event.headers.Authorization?.replace(/^(Bearer )/,'')
-  if (!token) throw new createError.Unauthorized()
-  const username = parsedFromJWT(token!)['cognito:username']
+  const username = usernameFromTokenIn(event)
 
   if (!username || event.body === null) {
     throw new createError.BadRequest(`Invalid body`)
