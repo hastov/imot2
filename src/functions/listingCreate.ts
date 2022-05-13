@@ -1,28 +1,32 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "../libs/ddbDocClient";
+import parsedFromJWT from "../libs/jwtParse";
 import { ulid } from 'ulid';
 import middy from '@middy/core';
 import httpJsonBodyParser from '@middy/http-json-body-parser';
 import httpEventNormalizer from '@middy/http-event-normalizer';
 import httpErrorHandler from '@middy/http-error-handler';
 import createError from 'http-errors';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
-const listingCreate: APIGatewayProxyHandler = async (event, _context) => {
+const listingCreate: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent, _context) => {
   // return {
   //   statusCode: 200,
-  //   body: JSON.stringify(event.headers.Authorization.replace(/^(Bearer )/,'')),
-  // };
+  const token = event.headers.Authorization?.replace(/^(Bearer )/,'')
+  if (!token) throw new createError.Unauthorized()
+  const username = parsedFromJWT(token!)['cognito:username']
 
-  if (event.body === null) {
+  if (!username || event.body === null) {
     throw new createError.BadRequest(`Invalid body`)
   }
   // const { typeOfListing: string, typeOfProperty, province, city, roomsCount, neighboorhood }: Body = event.body;
-  const { typeOfListing, typeOfProperty, province, city, roomsCount, neighboorhood } = event.body as any;
+  const { typeOfListing, typeOfProperty, province, city, roomsCount, neighboorhood, price } = event.body as any;
 
   const listing = {
-    PPK: ulid(),
-    PSK: `${typeOfListing}#${typeOfProperty}#${province}#${city}#${roomsCount}#${neighboorhood}`
+    PPK: "LISTINGS",
+    PSK: ulid(),
+    LSI1: `${typeOfProperty}#${typeOfListing}#${typeOfProperty}#${province}#${city}#${neighboorhood}#${roomsCount}#${price}`,
+    POSTER: username,
   };
 
   const params = {

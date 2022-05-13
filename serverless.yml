@@ -16,6 +16,7 @@ provider:
         - ${file(${self:custom.functions.userAuthLocation}.yml):iam}
         - ${file(${self:custom.functions.listingCreateLocation}.yml):iam}
         - ${file(${self:custom.functions.listingReadLocation}.yml):iam}
+        - ${file(${self:custom.functions.listingDeleteLocation}.yml):iam}
 
 plugins:
   - serverless-plugin-typescript
@@ -31,6 +32,7 @@ functions:
   - ${file(${self:custom.functions.userAuthLocation}.yml):function}
   - ${file(${self:custom.functions.listingCreateLocation}.yml):function}
   - ${file(${self:custom.functions.listingReadLocation}.yml):function}
+  - ${file(${self:custom.functions.listingDeleteLocation}.yml):function}
 
 custom:
   ListingsTable:
@@ -44,3 +46,4 @@ custom:
     userAuthLocation: ${self:custom.functions.directory}/userAuth
     listingCreateLocation: ${self:custom.functions.directory}/listingCreate
     listingReadLocation: ${self:custom.functions.directory}/listingRead
+    listingDeleteLocation: ${self:custom.functions.directory}/listingDelete

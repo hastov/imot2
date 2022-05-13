@@ -8,8 +8,20 @@ Table:
         AttributeType: S
       - AttributeName: PSK
         AttributeType: S
+      - AttributeName: LSI1
+        AttributeType: S
     KeySchema:
       - AttributeName: PPK
         KeyType: HASH
       - AttributeName: PSK
         KeyType: RANGE
+    LocalSecondaryIndexes:
+      - IndexName: LSI1
+        KeySchema:
+          - AttributeName: PPK
+            KeyType: HASH
+          - AttributeName: LSI1
+            KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
+            

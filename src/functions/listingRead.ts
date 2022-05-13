@@ -10,30 +10,31 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 
 const listingRead: APIGatewayProxyHandler = async (event, _context) => {
   const { id } = event.pathParameters!;
+  
+}
+
+export const getListingByID = async (id: string): Promise<Object> => {
   const params = {
     TableName: process.env.LISTINGS_TABLE_NAME,
-    KeyConditionExpression: 'PPK = :PPK',
+    KeyConditionExpression: 'PPK = :PPK AND PSK = :PSK',
     ExpressionAttributeValues: {
-      ':PPK': id,
+      ':PPK': 'LISTINGS',
+      ':PSK': id,
     },
   };
 
+  let result;
   try {
-    const result = await ddbDocClient.send(new QueryCommand(params));
-    if (!result.Items) throw new createError.NotFound();
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result.Items),
-    };
+    result = await ddbDocClient.send(new QueryCommand(params));
   } catch (error) {
     console.error(error);
     throw new createError.InternalServerError(error as string);
   }
 
-  // return {
-  //   statusCode: 201,
-  //   body: JSON.stringify(listing),
-  // };
+  if (result.Items?.length == 0) 
+    throw new createError.NotFound();
+  
+  return result.Items![0]
 }
 
 // interface Body { 
